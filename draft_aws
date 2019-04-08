@@ -1,0 +1,57 @@
+import paho.mqtt.client  as mqtt
+import paho.mqtt.publish as publish
+import time,json,ssl
+def on_connect(mqttc, obj, flags, rc):
+   if rc == 0:
+       print 'Connected to the AWS IoT service!'
+   else :
+       print('Error connecting to AWS IoT service! (Error code ' + str(rc) + ': ' + RESULT_CODES[rc] + ')')
+       client.disconnect()
+client = mqtt.Client(client_id='odroid-c1', protocol=mqtt.MQTTv311)
+client.on_connect = on_connect
+client.tls_set('certs/root-CA.crt', certfile='certs/certificate.pem.crt', keyfile='certs/private.pem.key', tls_version=ssl.PROTOCOL_SSLv23, ciphers=None)
+client.tls_insecure_set(True)
+client.connect('A32L40P6IYKK8W.iot.us-east-1.amazonaws.com', 8883, 60)
+client.loop_start()
+msg = {data: 'test'}
+client.publish('topic', json.dumps(msg))
+
+
+# sending data
+
+while True:
+   time.sleep(3)
+   # read sensor data
+   ts = int(time.time())
+   lux = tsl.lux()
+   #pir = wpi.digitalRead(2)
+   #mat = wpi.digitalRead(3)
+   sound = wpi.digitalRead(21)
+   volume = wpi.analogRead(0)*255/2047 # 0-10=quiet, 10-30=moderate, 30-127=loud
+   mom = 0
+   dad = 0
+   
+   if mat == 0: # if baby is not on mat, we check if mom or dad picked her up
+       if nfcid == 'F10B330F': # nfc tag for mom's bracelet
+           mom = 1
+       elif nfcid == '833BC4A2': # nfc tag for dad's bracelet
+           dad = 1
+   if lux > mlux:
+       mlux = lux
+   if pir > mpir:
+       mpir = pir
+   if mat < mmat:
+       mmat = mat
+   if sound > msound:
+       msound = sound
+   if volume > mvolume:
+       mvolume = volume
+   # send data to AWS
+   if count == 0:
+       msg = {'ts': ts, 'lux': mlux, 'pir': mpir, 'mat': mmat, 'sound': msound, 'volume': mvolume, 'mom': mom, 'dad': dad}
+       print json.dumps(msg)
+       client.publish('sensorTopic', json.dumps(msg))
+       mlux = mpir = mmat = msound = mvolume = 0
+       if mmat == 1: # reset nfcid after baby is placed on mat
+           nfcid = 0
+   count = (count + 1) % 20
