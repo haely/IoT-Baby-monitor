@@ -1,0 +1,31 @@
+# PULLS GPIO IP EVERY SEC
+# ADD PRESSURE MATS, PIR SENSOR
+
+import wiringpi2 as wpi
+import time
+wpi.wiringPiSetup()
+# GPIO pin setup
+wpi.pinMode(2, wpi.GPIO.INPUT)
+while True:
+   i=wpi.digitalRead(2)
+   if i==0:
+       print "no motion ", i
+   elif i==1:
+       print "motion detected ", i
+   time.sleep(1)  #in sec, modify to 15-30 min?
+   
+   #The Sparkfun sound detector that we will be using has 5 pins: VCC (5V), GND, GATE, ENVELOPE and AUDIO. We will be using the GATE digital output, which is 1 when sound is detected, and 0 otherwise, and the ENVELOPE analog output, which represents the amplitude of the sound. We will be connecting the GATE pin to header #29 (WiringPi GPIO 21, using yellow wire), and the ENVELOPE pin to ADC.AIN0 on header #40 (blue wire).
+   
+   import wiringpi2 as wpi
+import time
+wpi.wiringPiSetup()
+while True:
+   i=wpi.analogRead(0)
+   ampl = i*255/2047 # not sure this is correct
+   if ampl <= 10:
+       print "quiet: ", ampl, ", ", i
+   elif ampl <= 30:
+       print "moderate: ", ampl, ", ", i
+   else:
+       print "loud: ", ampl, ", ", i
+   time.sleep(0.5)
